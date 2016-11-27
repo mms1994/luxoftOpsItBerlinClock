@@ -8,77 +8,100 @@ import java.util.regex.Pattern;
  */
 public class Converter implements TimeConverter
 {
+	//	constants
 	private static final String YELLOW = "Y";
 	private static final String RED = "R";
 	private static final String EMPTY = "O";
 	private static final String NEW_LINE = "\r\n";
 	private static final Pattern TIME = Pattern.compile("(\\S\\S):(\\S\\S):(\\S\\S)");
 
-
+	//  function from interface
 	@Override
 	public String convertTime(String aTime)
 	{
 		Matcher matcher = TIME.matcher(aTime);
 		if (matcher.matches())
 		{
-			String result = "";
-//			prepare data to create result
+			StringBuilder stringBuilder = new StringBuilder();
+			// prepare data to create result
 			Integer hours = Integer.parseInt(matcher.group(1));
 			Integer minutes = Integer.parseInt(matcher.group(2));
 			Integer seconds = Integer.parseInt(matcher.group(3));
 
-//          setting 'seconds' line
-			result = setSeconds(result, seconds);
+			// append 'seconds' line
+			stringBuilder.append(prepareSeconds(seconds));
 
-//          setting 'hours' line
-			result = setHours(result, hours);
+			// append 'hours' lines
+			stringBuilder.append(prepareHours(hours));
 
-//          setting 'minutes' line
-			result = setMinutes(result, minutes);
+			// append 'minutes' lines
+			stringBuilder.append(prepareMinutes(minutes));
 
-			return result;
+			return stringBuilder.toString();
 		} else
-//			if invalid format
+			// if invalid format
 			return null;
 	}
 
-	private String setMinutes(String result, Integer minutes)
+//	auxiliary functions
+
+	//	preparing hours section
+	private String prepareHours(Integer hours)
 	{
-		return String.format("%s%s%s%s", result, prepareLine(minutes / 5), NEW_LINE,
-							 prepareLine(minutes % 5, YELLOW, 4));
+		// building first line of hours
+		final String firstLine = prepareLine(hours / 5, RED, 4);
+		// building second line of hours
+		final String secondLine = prepareLine(hours % 5, RED, 4);
+		// return result
+		return String.format("%s%s%s%s", firstLine, NEW_LINE, secondLine, NEW_LINE);
 	}
 
-	private String setHours(String result, Integer hours)
+	//	preparing minutes section
+	private String prepareMinutes(Integer minutes)
 	{
-		return String
-				.format("%s%s%s%s%s", result, prepareLine(hours / 5, RED, 4), NEW_LINE, prepareLine(hours % 5, RED, 4),
-						NEW_LINE);
+		// building first line of minutes
+		final String firstLine = prepareLine(minutes / 5);
+		// building second line of minutes
+		final String secondLine = prepareLine(minutes % 5, YELLOW, 4);
+		// return result
+		return String.format("%s%s%s", firstLine, NEW_LINE, secondLine);
 	}
 
-	private String setSeconds(String result, Integer seconds)
+	//	preparing seconds section
+	private String prepareSeconds(Integer seconds)
 	{
-		result += seconds % 2 == 0 ? YELLOW : EMPTY;
-		result += NEW_LINE;
-		return result;
+		// building line of seconds
+		final String line = seconds % 2 == 0 ? YELLOW : EMPTY;
+		// return result
+		return String.format("%s%s", line, NEW_LINE);
 	}
 
-	private String prepareLine(Integer counter, String symbol, Integer maxLength)
+	// preparing single line (minutes+hours)
+	private String prepareLine(Integer numberOfSymbols, String symbol, Integer lengthOfLine)
 	{
-		String result = "";
-		Integer index;
-		for (index = 0; index < counter; index++)
-			result += symbol;
-		for (index = 0; index < maxLength - counter; index++)
-			result += EMPTY;
-		return result;
+		// preparing variables
+		StringBuilder stringBuilder = new StringBuilder();
+		Integer index = 0;
+		// inserting symbols
+		for (; index < numberOfSymbols; index++)
+			stringBuilder.append(symbol);
+		// completion line to achieve correct length of line
+		for (; index < lengthOfLine; index++)
+			stringBuilder.append(EMPTY);
+		// return ready line
+		return stringBuilder.toString();
 	}
 
+	//	preparing line with minutes (where there are red and yellow lamps)
 	private String prepareLine(Integer counter)
 	{
-		char[] temporary = prepareLine(counter, YELLOW, 11).toCharArray();
-		for (Integer index = 2; index < temporary.length; index += 3)
-			if (temporary[index] == YELLOW.charAt(0))
-				temporary[index] = RED.charAt(0);
-		return new String(temporary);
+		//	getting and splitting line with yellow lamps (or 'empty' lamps)
+		String[] array = prepareLine(counter, YELLOW, 11).split("");
+		// if 2,5 and 8 index of string contains yellow, replace with red (first, second and third quarter)
+		for (Integer index = 2; index < 11; index += 3)
+			if (array[index].equals(YELLOW))
+				array[index] = RED;
+		// joining array to single string and return
+		return String.join("", array);
 	}
 }
