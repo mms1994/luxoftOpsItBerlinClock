@@ -12,7 +12,7 @@ public class Converter implements TimeConverter
 	private static final String YELLOW = "Y";
 	private static final String RED = "R";
 	private static final String EMPTY = "O";
-	private static final String NEW_LINE = "\r\n";
+	private static final String NEW_LINE = System.getProperty("line.separator");
 	private static final Pattern TIME = Pattern.compile("(\\S\\S):(\\S\\S):(\\S\\S)");
 
 	//  function from interface
@@ -28,6 +28,10 @@ public class Converter implements TimeConverter
 			Integer minutes = Integer.parseInt(matcher.group(2));
 			Integer seconds = Integer.parseInt(matcher.group(3));
 
+			// in case incorrect format
+			if (hours > 24 || minutes > 59 || seconds > 59 || hours < 0 || minutes < 0 || seconds < 0)
+				return null;
+
 			// append 'seconds' line
 			stringBuilder.append(prepareSeconds(seconds));
 
@@ -39,7 +43,7 @@ public class Converter implements TimeConverter
 
 			return stringBuilder.toString();
 		} else
-			// if invalid format
+			// in case incorrect format
 			return null;
 	}
 
